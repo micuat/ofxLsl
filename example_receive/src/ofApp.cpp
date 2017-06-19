@@ -1,26 +1,54 @@
 #include "ofApp.h"
 
-using namespace lsl;
+// example based on
+// https://github.com/sccn/labstreaminglayer/blob/master/LSL/liblsl/examples/C%2B%2B/ReceiveDataSimple/ReceiveDataSimple.cpp
 
-float sample[8];
+using namespace lsl;
 
 //--------------------------------------------------------------
 void ofApp::setup(){
     // resolve the stream of interest & make an inlet to get data from the first result
     std::vector<stream_info> results = resolve_stream("type", "EEG");
     inlet = make_shared<stream_inlet>(results[0]);
+    incomingSamples.resize(inlet->info().channel_count());
+    buffers.resize(inlet->info().channel_count());
+    for (auto& b: buffers) {
+        b.resize(ofGetWidth());
+    }
+    curBuffer = 0;
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
     // receive data & time stamps forever (not displaying them here)
-    double ts = inlet->pull_sample(&sample[0], 8);
-    ofLogError() << sample[0];
+    double ts = inlet->pull_sample(incomingSamples);
+    int count = 0;
+    for (auto& b : buffers) {
+        b.at(curBuffer) = incomingSamples.at(count);
+        count++;
+    }
+    curBuffer = (curBuffer + 1) % buffers.at(0).size();
+    ofLogError() << incomingSamples.at(0);
 }
 
 //--------------------------------------------------------------
 void ofApp::draw(){
+    ofBackground(0);
 
+    ofTranslate(0, ofGetHeight() * 0.5f);
+    ofNoFill();
+    ofSetLineWidth(1);
+    ofSetColor(255, 128);
+
+    for (int i = 0; i < buffers.size(); i++) {
+        ofBeginShape();
+        int count = 0;
+        for (auto& b : buffers.at(i)) {
+            ofVertex(count, ofMap(b, -1000, 1000, 100, -100));
+            count++;
+        }
+        ofEndShape();
+    }
 }
 
 //--------------------------------------------------------------

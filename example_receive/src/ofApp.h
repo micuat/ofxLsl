@@ -23,4 +23,7 @@ public:
     void gotMessage(ofMessage msg);
 
     shared_ptr<lsl::stream_inlet> inlet;
+    vector<float> incomingSamples;
+    vector<vector<float> > buffers;
+    int curBuffer;
 };
