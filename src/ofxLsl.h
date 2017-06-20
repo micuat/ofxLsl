@@ -5,12 +5,26 @@
 
 class LslOutlet
 {
-    class AbstractParameter {
-        AbstractParameter() {}
-    };
-    using InfoPtr = std::shared_ptr<lsl::stream_info>;
     using OutletPtr = std::shared_ptr<lsl::stream_outlet>;
-    using Outlets = std::map<OutletPtr, std::vector<double>* >;
+    class AbstractSample {
+    public:
+        AbstractSample() {}
+        virtual void set(OutletPtr outlet) = 0;
+    };
+
+    template <typename T>
+    class Sample : public AbstractSample {
+    public:
+        std::vector<T>* v;
+        Sample(std::vector<T>* _v) : v(_v) {}
+        void set(OutletPtr outlet) {
+            outlet->push_sample(*v);
+        }
+    };
+
+    using SampleRef = std::shared_ptr<AbstractSample>;
+    using InfoPtr = std::shared_ptr<lsl::stream_info>;
+    using Outlets = std::map<OutletPtr, SampleRef>;
     Outlets outlets;
 
     LslOutlet() {
@@ -25,18 +39,20 @@ public:
         return s_instance;
     }
 
-    void insert(OutletPtr& outlet, std::vector<double> &v) {
-        instance().outlets.insert(Outlets::value_type(outlet, &v));
+    static void addStream(OutletPtr outlet, SampleRef sample) {
+        instance().outlets.insert(Outlets::value_type(outlet, sample));
     }
 
-    template <typename T>
-    static void addStream(InfoPtr& info, std::vector<T> &v) {
-        instance().insert(make_shared<lsl::stream_outlet>(*info), v);
+    static void addStream(InfoPtr info, SampleRef sample) {
+        auto outlet = std::make_shared<lsl::stream_outlet>(*info);
+        instance().addStream(outlet, sample);
     }
 
     template <typename T>
     static void addStream(const std::string &name, const std::string &type, std::vector<T> &v) {
-        addStream(make_shared<lsl::stream_info>(name, type, v.size()), v);
+        auto info = std::make_shared<lsl::stream_info>(name, type, v.size());
+        SampleRef sample = std::make_shared<Sample<T> >(&v);
+        addStream(info, sample);
     }
 
     void ofUpdate(ofEventArgs &args) {
@@ -46,8 +62,8 @@ public:
     void update() {
         for (const auto& keyValue : outlets) {
             const auto& outlet = keyValue.first;
-            const auto& value = keyValue.second;
-            outlet->push_sample(*value);
+            const auto& sample = keyValue.second;
+            sample->set(outlet);
         }
     }
 };
