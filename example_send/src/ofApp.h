@@ -23,5 +23,4 @@ public:
     void gotMessage(ofMessage msg);
 
     shared_ptr<lsl::stream_info> info;
-    shared_ptr<lsl::stream_outlet> outlet;
 };

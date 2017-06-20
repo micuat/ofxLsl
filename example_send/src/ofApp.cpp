@@ -8,7 +8,7 @@ using namespace lsl;
 //--------------------------------------------------------------
 void ofApp::setup() {
     info = make_shared<stream_info>("SimpleStream", "EEG", 8);
-    outlet = make_shared<stream_outlet>(*info);
+    LslOutlet::instance().insert(info, make_shared<stream_outlet>(*info));
 }
 
 //--------------------------------------------------------------
@@ -18,7 +18,7 @@ void ofApp::update() {
     for (int c = 0; c < 8; c++)
         sample[c] = (rand() % 1500) - 750;
     // send it
-    outlet->push_sample(sample);
+    LslOutlet::instance().get(info)->push_sample(sample);
 }
 
 //--------------------------------------------------------------
