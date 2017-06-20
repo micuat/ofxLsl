@@ -23,4 +23,5 @@ public:
     void gotMessage(ofMessage msg);
 
     shared_ptr<lsl::stream_info> info;
+    vector<double> sample;
 };

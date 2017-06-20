@@ -1,13 +1,21 @@
 #pragma once
 
 #include "lsl_cpp.h"
+#include "ofMain.h"
 
 class LslOutlet
 {
-    typedef std::map<std::shared_ptr<lsl::stream_info>, std::shared_ptr<lsl::stream_outlet> > Outlets;
+    class AbstractParameter {
+        AbstractParameter() {}
+    };
+    using InfoPtr = std::shared_ptr<lsl::stream_info>;
+    using OutletPtr = std::shared_ptr<lsl::stream_outlet>;
+    using Outlets = std::map<OutletPtr, std::vector<double>* >;
     Outlets outlets;
 
-    LslOutlet() {}
+    LslOutlet() {
+        ofAddListener(ofEvents().update, this, &LslOutlet::update, OF_EVENT_ORDER_AFTER_APP);
+    }
     ~LslOutlet() {}
     LslOutlet(const LslOutlet &);
     LslOutlet & operator=(const LslOutlet &);
@@ -17,11 +25,20 @@ public:
         return s_instance;
     }
 
-    void insert(std::shared_ptr<lsl::stream_info> info, std::shared_ptr<lsl::stream_outlet> outlet) {
-        instance().outlets.insert(Outlets::value_type(info, outlet));
+    void insert(OutletPtr& outlet, std::vector<double> &v) {
+        instance().outlets.insert(Outlets::value_type(outlet, &v));
     }
 
-    std::shared_ptr<lsl::stream_outlet> get(std::shared_ptr<lsl::stream_info> info) {
-        return instance().outlets.at(info);
+    template <typename T>
+    static void addStream(InfoPtr& info, std::vector<T> &v) {
+        instance().insert(make_shared<lsl::stream_outlet>(*info), v);
+    }
+
+    void update(ofEventArgs &args) {
+        for (const auto& keyValue : outlets) {
+            const auto& outlet = keyValue.first;
+            const auto& value = keyValue.second;
+            outlet->push_sample(*value);
+        }
     }
 };

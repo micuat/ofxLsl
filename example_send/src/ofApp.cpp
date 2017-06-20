@@ -7,18 +7,15 @@ using namespace lsl;
 
 //--------------------------------------------------------------
 void ofApp::setup() {
-    info = make_shared<stream_info>("SimpleStream", "EEG", 8);
-    LslOutlet::instance().insert(info, make_shared<stream_outlet>(*info));
+    sample.resize(8);
+    LslOutlet::addStream(make_shared<stream_info>("SimpleStream", "EEG", sample.size()), sample);
 }
 
 //--------------------------------------------------------------
 void ofApp::update() {
-    float sample[8];
     // generate random data
-    for (int c = 0; c < 8; c++)
-        sample[c] = (rand() % 1500) - 750;
-    // send it
-    LslOutlet::instance().get(info)->push_sample(sample);
+    for (int c = 0; c < sample.size(); c++)
+        sample.at(c) = (rand() % 1500) - 750;
 }
 
 //--------------------------------------------------------------
