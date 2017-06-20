@@ -14,7 +14,7 @@ class LslOutlet
     Outlets outlets;
 
     LslOutlet() {
-        ofAddListener(ofEvents().update, this, &LslOutlet::update, OF_EVENT_ORDER_AFTER_APP);
+        ofAddListener(ofEvents().update, this, &LslOutlet::ofUpdate, OF_EVENT_ORDER_AFTER_APP);
     }
     ~LslOutlet() {}
     LslOutlet(const LslOutlet &);
@@ -39,7 +39,11 @@ public:
         addStream(make_shared<lsl::stream_info>(name, type, v.size()), v);
     }
 
-    void update(ofEventArgs &args) {
+    void ofUpdate(ofEventArgs &args) {
+        update();
+    }
+
+    void update() {
         for (const auto& keyValue : outlets) {
             const auto& outlet = keyValue.first;
             const auto& value = keyValue.second;
