@@ -1,8 +1,5 @@
 #include "ofApp.h"
 
-// example based on
-// https://github.com/sccn/labstreaminglayer/blob/master/LSL/liblsl/examples/C%2B%2B/SendDataSimple/SendDataSimple.cpp
-
 using namespace lsl;
 
 //--------------------------------------------------------------
@@ -16,6 +13,8 @@ void ofApp::update() {
     // generate random data
     for (int c = 0; c < sample.size(); c++)
         sample.at(c) = (rand() % 1500) - 750;
+
+    // data will be sent automatically at the end of update()
 }
 
 //--------------------------------------------------------------
