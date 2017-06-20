@@ -1,15 +1,29 @@
 #include "ofApp.h"
 
-// example based on
-// https://github.com/sccn/labstreaminglayer/blob/master/LSL/liblsl/examples/C%2B%2B/ReceiveDataSimple/ReceiveDataSimple.cpp
-
 using namespace lsl;
 
 //--------------------------------------------------------------
 void ofApp::setup() {
-    // resolve the stream of interest & make an inlet to get data from the first result
-    std::vector<stream_info> results = resolve_stream("type", "EEG");
-    inlet = make_shared<stream_inlet>(results[0]);
+    auto inlet = LslInlet::addStream("type", "EEG", (function<void(LslInlet::InletPtr)>)[&](LslInlet::InletPtr inlet) {
+        try {
+            // receive data
+            vector<vector<double> > chunk;
+            inlet->pull_chunk(chunk);
+
+            for (auto& c : chunk) {
+                int count = 0;
+                for (auto& buffer : buffers) {
+                    buffer.at(curBuffer) = c.at(count);
+                    count++;
+                }
+                curBuffer = (curBuffer + 1) % buffers.at(0).size();
+            }
+        }
+        catch (std::exception &e) {
+            cerr << "Got an exception: " << e.what() << endl;
+        }
+    });
+
     buffers.resize(inlet->info().channel_count());
     for (auto& b : buffers) {
         b.resize(ofGetWidth());
@@ -19,23 +33,6 @@ void ofApp::setup() {
 
 //--------------------------------------------------------------
 void ofApp::update() {
-    try {
-        // receive data
-        vector<vector<double> > chunk;
-        inlet->pull_chunk(chunk);
-
-        for (auto& c : chunk) {
-            int count = 0;
-            for (auto& buffer : buffers) {
-                buffer.at(curBuffer) = c.at(count);
-                count++;
-            }
-            curBuffer = (curBuffer + 1) % buffers.at(0).size();
-        }
-    }
-    catch (std::exception &e) {
-        cerr << "Got an exception: " << e.what() << endl;
-    }
 }
 
 //--------------------------------------------------------------

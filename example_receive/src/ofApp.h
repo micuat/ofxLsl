@@ -22,7 +22,6 @@ public:
     void dragEvent(ofDragInfo dragInfo);
     void gotMessage(ofMessage msg);
 
-    shared_ptr<lsl::stream_inlet> inlet;
     vector<vector<double> > buffers;
     int curBuffer;
 };
