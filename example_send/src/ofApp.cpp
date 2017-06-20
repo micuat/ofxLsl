@@ -8,7 +8,7 @@ using namespace lsl;
 //--------------------------------------------------------------
 void ofApp::setup() {
     sample.resize(8);
-    LslOutlet::addStream(make_shared<stream_info>("SimpleStream", "EEG", sample.size()), sample);
+    LslOutlet::addStream("SimpleStream", "EEG", sample);
 }
 
 //--------------------------------------------------------------

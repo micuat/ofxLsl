@@ -34,6 +34,11 @@ public:
         instance().insert(make_shared<lsl::stream_outlet>(*info), v);
     }
 
+    template <typename T>
+    static void addStream(const std::string &name, const std::string &type, std::vector<T> &v) {
+        addStream(make_shared<lsl::stream_info>(name, type, v.size()), v);
+    }
+
     void update(ofEventArgs &args) {
         for (const auto& keyValue : outlets) {
             const auto& outlet = keyValue.first;
