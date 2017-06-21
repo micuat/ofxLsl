@@ -6,10 +6,8 @@ using namespace lsl;
 void ofApp::setup() {
     auto inlet = LslInlet::addStream("type", "EEG", (function<void(vector<float>&)>)[&](vector<float>& v) {
         try {
-            int count = 0;
-            for (auto& buffer : buffers) {
-                buffer.at(curBuffer) = v.at(count);
-                count++;
+            for (int i = 0; i < buffers.size(); i++) {
+                buffers.at(i).at(curBuffer) = v.at(i);
             }
             curBuffer = (curBuffer + 1) % buffers.at(0).size();
         }
