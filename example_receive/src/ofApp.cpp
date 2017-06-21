@@ -4,20 +4,14 @@ using namespace lsl;
 
 //--------------------------------------------------------------
 void ofApp::setup() {
-    auto inlet = LslInlet::addStream("type", "EEG", (function<void(LslInlet::InletPtr)>)[&](LslInlet::InletPtr inlet) {
+    auto inlet = LslInlet::addStream("type", "EEG", (function<void(vector<float>&)>)[&](vector<float>& v) {
         try {
-            // receive data
-            vector<vector<double> > chunk;
-            inlet->pull_chunk(chunk);
-
-            for (auto& c : chunk) {
-                int count = 0;
-                for (auto& buffer : buffers) {
-                    buffer.at(curBuffer) = c.at(count);
-                    count++;
-                }
-                curBuffer = (curBuffer + 1) % buffers.at(0).size();
+            int count = 0;
+            for (auto& buffer : buffers) {
+                buffer.at(curBuffer) = v.at(count);
+                count++;
             }
+            curBuffer = (curBuffer + 1) % buffers.at(0).size();
         }
         catch (std::exception &e) {
             cerr << "Got an exception: " << e.what() << endl;

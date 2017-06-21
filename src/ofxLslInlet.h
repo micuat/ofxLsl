@@ -15,8 +15,25 @@ private:
         virtual void get(InletPtr inlet) = 0;
     };
 
-    template <typename R>
+    template <typename T, typename R>
     class Sample : public AbstractSample {
+    public:
+        using Setter = std::function<R(std::vector<T>&)>;
+        Sample(Setter _setter) : setter(_setter) {}
+        void get(InletPtr inlet) {
+            // receive data
+            vector<vector<T> > chunk;
+            inlet->pull_chunk(chunk);
+            for (auto& c : chunk) {
+                setter(c);
+            }
+        }
+    private:
+        Setter setter;
+    };
+
+    template <typename R>
+    class Sample<void, R> : public AbstractSample {
     public:
         using Setter = std::function<R(InletPtr)>;
         Sample(Setter _setter) : setter(_setter) {}
@@ -59,7 +76,14 @@ public:
     template <typename R>
     static InletPtr addStream(const std::string &prop, const std::string &value, std::function<R(InletPtr)> callback) {
         std::vector<lsl::stream_info> infos = lsl::resolve_stream(prop, value);
-        SampleRef sample = std::make_shared<Sample<R> >(callback);
+        SampleRef sample = std::make_shared<Sample<void, R> >(callback);
+        return addStream(std::make_shared<lsl::stream_info>(infos.at(0)), sample);
+    }
+
+    template <typename R, typename T>
+    static InletPtr addStream(const std::string &prop, const std::string &value, std::function<R(std::vector<T>&)> callback) {
+        std::vector<lsl::stream_info> infos = lsl::resolve_stream(prop, value);
+        SampleRef sample = std::make_shared<Sample<T, R> >(callback);
         return addStream(std::make_shared<lsl::stream_info>(infos.at(0)), sample);
     }
 
